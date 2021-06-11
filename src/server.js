@@ -74,14 +74,23 @@ app.post("/messages", (req, res) => {
 
 app.post("/status", (req, res) => {
     const from = req.headers.user;
-    if(participants.find(user => user.name !== from)){
-        res.sendStatus(400);
-        console.log("nao ta na lista de participantes")
-        return
-    } else {
-        participants.push({ from, lastStatus: Date.now()});
-        res.sendStatus(200);
-    }
+
+    const loggedParticipant = participants.find(user => user.name === from);
+    
+    loggedParticipant
+    ? ((loggedParticipant.lastStatus = Date.now()) && res.sendStatus(200))
+    : res.sendStatus(400)      
 });
+
+setInterval(() => {
+    participants = participants.filter(p => {
+        if((Date.now() - p.lastStatus) < 10000){
+            return true
+        } else {
+            messages.push({from: p.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format('HH:mm:ss')})
+            return false
+        }
+    })
+}, 15000);
 
 app.listen(4000, () => console.log("server rodando na 4000") );
