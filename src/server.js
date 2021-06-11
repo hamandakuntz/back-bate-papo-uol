@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dayjs from 'dayjs';
+import { stripHtml } from "string-strip-html";
+import joi from 'joi'
 
 const app = express(); 
 
@@ -41,7 +43,7 @@ app.get("/messages", (req, res) =>{
     const filteredMessages = messages.filter(m => m.to === "Todos" || m.type === "message" || m.type === "status" || m.to === loggedUser || m.from === loggedUser);
     
     if (limit) {        
-        res.send(filteredMessages.slice(0, limit));
+        res.send(filteredMessages.slice(-limit));
     } else {
         res.send(filteredMessages); 
     }    
@@ -52,22 +54,17 @@ app.post("/messages", (req, res) => {
     const from  = req.headers.user;  
    
     if ((to && text) === "") {
-        res.sendStatus(400);
-        console.log("primeiro caso")
+        res.sendStatus(400);       
         return
     } else if (type !== "message" && type !== "private_message") {
-        res.sendStatus(400);
-        console.log("segundo caso")
+        res.sendStatus(400);        
         return
-    } else if (!participants.find(user => user.name === from)) {
-        console.log(participants)       
-        res.sendStatus(400);
-        console.log("terceiro caso")
+    } else if (!participants.find(user => user.name === from)) {            
+        res.sendStatus(400);        
         return
     } else {
         messages.push({ from, to, text, type, time: dayjs().format('HH:mm:ss')});
-        res.sendStatus(200); 
-        console.log("enviado com sucesso")
+        res.sendStatus(200);        
     }    
     
 });
@@ -93,4 +90,4 @@ setInterval(() => {
     })
 }, 15000);
 
-app.listen(4000, () => console.log("server rodando na 4000") );
+app.listen(4000);
